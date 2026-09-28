@@ -2,6 +2,7 @@ package main
 
 import(
     "strconv"
+    "fmt"
 )
 
 var  vars = make(map[string]float64)
@@ -42,6 +43,9 @@ func (p *Pars) num() float64 {
     return 0
 }
 func (p *Pars) current() Token {
+    if p.pos >= len(p.tokens) {
+        return Token{}
+    }
     return p.tokens[p.pos]
 }
 
@@ -95,6 +99,13 @@ func (p *Pars) expr() float64 {
 
 func (p *Pars) stmt() { //statement
     name := p.current().Value
+    
+    if name == "print" {
+        p.adv()
+        value := p.expr()
+        fmt.Println(value)
+        return
+    }
     for i := 0; i < 2; i++ {
         p.adv() // simultaniously advance and fix the bug where we forgot to skip '='
     }
@@ -103,3 +114,13 @@ func (p *Pars) stmt() { //statement
     vars[name] = value
 }
 
+
+func (p *Pars) str() {
+    token := p.current()
+
+    if token.Type == "s" {
+        p.adv()
+        return token.Value
+    }
+    return ""
+}

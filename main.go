@@ -33,15 +33,22 @@ func main(){
 //    fmt.Println(vars[name])
     
     for parser.pos < len(parser.tokens) {
-        parser.stmt()
-        
-        if parser.pos < len(parser.tokens) && parser.current().Type == "nl" {
+        if parser.current().Type == "nl" {
             parser.adv()
-            
+            continue
+        }
+    
+        oldPos := parser.pos
+        parser.stmt()
+    
+        if parser.pos == oldPos {
+            panic("parser got stuck")
         }
     }
-    for _, token := range tokens {
+   for _, token := range tokens {
         fmt.Printf("\n%s: %q", token.Type, token.Value)
     }
-    fmt.Println(vars)
+    for name, value := range vars {
+        fmt.Printf("\n%s = %v", name, value)
+    }
 }
