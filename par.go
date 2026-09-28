@@ -135,7 +135,7 @@ func (p *Pars) stmt() { //statement
         }
         if tname == "f" {
             vars[name] = Value{
-                Type:   "flt",
+                Type:   "float",
                 Float:  (value),
             }
         }
@@ -154,8 +154,8 @@ func (p *Pars) stmt() { //statement
     name := p.current().Value
     if name == "print" {
         p.adv()
-        value := p.expr()
-        fmt.Println(value)
+        name = p.adv().Value
+        printval(name)
         return
     }
     for i := 0; i < 2; i++ {
@@ -180,4 +180,32 @@ func (p *Pars) str() string { // this returns a string, right...
         return token.Value
     }
     return "" // ... here
+}
+
+
+func printval(name string) {
+    value := vars[name]
+    switch value.Type{
+    case "int":
+        fmt.Println(value.Int)
+
+    case "float":
+        fmt.Println(value.Float)
+       
+    case "str":
+        fmt.Println(value.Str)
+    }
+}
+
+func (v Value) String() string {
+    switch v.Type {
+    case "int":
+        return fmt.Sprintf("%d", v.Int)
+    case "float":
+        return fmt.Sprintf("%v", v.Float)
+    case "str":
+        return v.Str
+    }
+
+    return ""
 }
