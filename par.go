@@ -1,11 +1,20 @@
 package main
 
 import(
-    "strconv"
     "fmt"
+    "strconv"
 )
 
-var  vars = make(map[string]float64)
+// var  vars = make(map[string]float64) this  will be a huge issue when we worry about var conversions
+// lets make a struct
+
+type Value struct {
+    Type    string
+    Int     int
+    Float   float64
+    Str     string
+}
+var vars = make(map[string]Value)
 
 type Pars struct {
     tokens  []Token
@@ -36,12 +45,21 @@ func (p *Pars) num() float64 {
         return n
     }
     if token.Type == "l" {
-        value:= vars[token.Value]
+        value := vars[token.Value]
         p.adv()
-        return value
+    
+        if value.Type == "int" {
+            return float64(value.Int)
+        }
+        if value.Type == "float" {
+            return value.Float
+        }
+
+        return 0
     }
-    return 0
+    return 0    // returns zero
 }
+
 func (p *Pars) current() Token {
     if p.pos >= len(p.tokens) {
         return Token{}
@@ -98,8 +116,42 @@ func (p *Pars) expr() float64 {
 
 
 func (p *Pars) stmt() { //statement
-    name := p.current().Value
+    tname := p.current().Value
+
+
+    if p.pos+1 < len(p.tokens) && p.tokens[p.pos+1].Type == "dc" {
+        p.adv()     //type
+        p.adv()     // ^
+        name := p.adv().Value
+        p.adv()     // =
+        value := p.expr()
+//        fmt.Println("\ntype:", tname, "\name:", name)
+
+        if tname == "i" {
+            vars[name] = Value{
+                Type:   "int",
+                Int:    int(value),
+            }
+        }
+        if tname == "f" {
+            vars[name] = Value{
+                Type:   "flt",
+                Float:  (value),
+            }
+        }
+
+        if tname == "s" {
+            value := p.str()    // we cant convert an f64 to a str as easily, 
+                                // so we'll reuse a function from earlier
+            vars[name] = Value{
+                Type:   "str",
+                Str: string(value),
+            }
+        }
+        return
+    }
     
+    name := p.current().Value
     if name == "print" {
         p.adv()
         value := p.expr()
@@ -111,16 +163,21 @@ func (p *Pars) stmt() { //statement
     }
 
     value := p.expr()
-    vars[name] = value
+    vars[name] = Value{
+        Type: "float",
+        Float: value,
+    }
+//    value := p.expr()
+//    vars[name] = value
 }
 
 
-func (p *Pars) str() {
+func (p *Pars) str() string { // this returns a string, right...
     token := p.current()
 
     if token.Type == "s" {
         p.adv()
         return token.Value
     }
-    return ""
+    return "" // ... here
 }

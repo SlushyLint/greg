@@ -55,7 +55,7 @@ func lex(src string) []Token {
         }
         if isdigit(src[i]) {
             start := i
-            for i < len(src) && isdigit(src[i]) {
+            for i < len(src) && isdigit(src[i]) || src[i] == '.' {
                 i++
             }
             
@@ -124,7 +124,13 @@ func lex(src string) []Token {
         tokens  = append(tokens, Token{
             Type: "op",
             Value: ";",
-        })
+            })
+        case '^':
+            tokens = append(tokens, Token{
+                Type: "dc", // declaration
+                Value: "^",
+            })
+
         
         }
     }
