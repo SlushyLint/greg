@@ -7,7 +7,7 @@ import(
 var src []byte
 var err error
 func read() {
-    src, err = os.ReadFile("test.st")
+    src, err = os.ReadFile(os.Args[1])
     if err != nil { 
         panic(err)
     }
@@ -17,11 +17,31 @@ func read() {
 
 func main(){
     read()
-    fmt.Print(src) 
+//    fmt.Print(src) 
     tokens := lex(string(src))
-    parser := npars(tokens)
+    parser := par(tokens)
+//    parser.stmt()
+//    fmt.Println(vars["x"])
+//    result := parser.expr()
+//    parser := npars(tokens)
+//    name := parser.current().Value
+//    parser.adv()
+//    parser.adv() // took me ages to figure out how to skip "=" >:(
+//    value := parser.expr()
+//    vars[name] = value
+//
+//    fmt.Println(vars[name])
     
+    for parser.pos < len(parser.tokens) {
+        parser.stmt()
+        
+        if parser.pos < len(parser.tokens) && parser.current().Type == "nl" {
+            parser.adv()
+            
+        }
+    }
     for _, token := range tokens {
         fmt.Printf("\n%s: %q", token.Type, token.Value)
     }
+    fmt.Println(vars)
 }
