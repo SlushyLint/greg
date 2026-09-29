@@ -18,70 +18,74 @@ func (p *Pars) condition() bool {
                             // is essentially "else { return left < right }"
 }
 func (p *Pars) ifstmt() {
+    // the bellow code is, AGAIN, absolete
+    p.ifbranch(true)
 
-    p.adv() // consume if
-    result := p.condition()
-    p.block(result)
-
-    // the above is new code
-
-//    if p.current().Type != "brace" || p.current().Value != "{" {
-//        panic("[!] E: Expected { after 'if'")
-//    }
-    // allow 'else' on the same line or the next line.
-    // the above code does not do this, so we comment it out.
-    // the above code was from a beta version, which did not support 'else'
-
-
-
-//        for p.pos < len(p.tokens) && 
-//        !(p.current().Type == "brace" && p.current().Value == "}"){
-//            if p.current().Type == "nl" ||      // 
-//            p.current().Type == "indent" ||     // this should let the parser ignore indentation artifacts
-//            p.current().Type == "dedent" {      //
-//                p.adv()
-//                continue
-//            }
-//            p.stmt()
-//        }
-//        if p.pos >= len(p.tokens) {
-//            panic("[!] E: Expected closing }")
-//        }
-//        p.adv() //consume }
-//        return
+//
+//    p.adv() // consume if
+//    result := p.condition()
+//    p.block(result)
+//
+//    // the above is new code
+//
+////    if p.current().Type != "brace" || p.current().Value != "{" {
+////        panic("[!] E: Expected { after 'if'")
+////    }
+//    // allow 'else' on the same line or the next line.
+//    // the above code does not do this, so we comment it out.
+//    // the above code was from a beta version, which did not support 'else'
+//
+//
+//
+////        for p.pos < len(p.tokens) && 
+////        !(p.current().Type == "brace" && p.current().Value == "}"){
+////            if p.current().Type == "nl" ||      // 
+////            p.current().Type == "indent" ||     // this should let the parser ignore indentation artifacts
+////            p.current().Type == "dedent" {      //
+////                p.adv()
+////                continue
+////            }
+////            p.stmt()
+////        }
+////        if p.pos >= len(p.tokens) {
+////            panic("[!] E: Expected closing }")
+////        }
+////        p.adv() //consume }
+////        return
+////    }
+////
+////    //skip the body
+////    depth := 1
+////    for p.pos < len(p.tokens) && depth > 0 {
+////        token := p.adv()
+////        if token.Type == "brace" {
+////            if token.Value == "{" {
+////                depth++
+////            } else if token.Value == "}" {
+////                depth --
+////            }
+////        }
+////    }
+////    if depth != 0 {
+////        panic("[!] expected } to close 'if'")
+////    }
+////}
+//
+//
+//    // the above code, again, is redacted. we do not need this anymore, as block() does most of this for us
+//
+//    for p.current().Type == "nl" ||
+//    p.current().Type == "indent" ||
+//    p.current().Type == "dedent" {
+//        p.adv() // if its not obvious already, p.adv() is basically just "continue" but for
+//                // the parser to continue doing its shit, not go to say "continue"
 //    }
 //
-//    //skip the body
-//    depth := 1
-//    for p.pos < len(p.tokens) && depth > 0 {
-//        token := p.adv()
-//        if token.Type == "brace" {
-//            if token.Value == "{" {
-//                depth++
-//            } else if token.Value == "}" {
-//                depth --
-//            }
-//        }
-//    }
-//    if depth != 0 {
-//        panic("[!] expected } to close 'if'")
+//    if p.current().Type == "l" && p.current().Value == "else" {
+//        p.adv() // read else
+//        p.block(!result)
 //    }
 //}
-
-
-    // the above code, again, is redacted. we do not need this anymore, as block() does most of this for us
-
-    for p.current().Type == "nl" ||
-    p.current().Type == "indent" ||
-    p.current().Type == "dedent" {
-        p.adv() // if its not obvious already, p.adv() is basically just "continue" but for
-                // the parser to continue doing its shit, not go to say "continue"
-    }
-
-    if p.current().Type == "l" && p.current().Value == "else" {
-        p.adv() // read else
-        p.block(!result)
-    }
 }
 
 func (p *Pars) block(run bool) {
@@ -170,3 +174,34 @@ func (p *Pars) block(run bool) {
 //    if depth != 0 {
 //        panic("[!] E: Expected end of indent body")
 //    }
+
+// do you guys want  me to keep the commented code?
+
+func (p *Pars) ifbranch(allowed bool) {
+    p.adv()
+    matches := p.condition()
+    run := allowed && matches   //ive never done this before, but it seems to work
+    p.block(run)
+
+    for p.current().Type == "nl" ||
+    p.current().Type == "indent" ||
+    p.current().Type == "dedent" {
+        p.adv()
+    }
+    if p.current().Type == "l" && p.current().Value == "elif" {
+        p.ifbranch(allowed && !matches)
+        return
+    }
+    if p.current().Type == "l" && p.current().Value == "else" {
+        p.adv()
+
+        // accept else if
+        if p.current().Type == "l" &&  p.current().Value == "if" {
+            p.ifbranch(allowed && !matches)
+            
+        } else{
+            p.block(allowed && !matches)
+            
+        }
+    }
+}
