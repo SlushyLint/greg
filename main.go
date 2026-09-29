@@ -17,6 +17,12 @@ var file = ""
 var verbose = false
 
 func main(){
+    defer func(){
+        if err := recover(); err !=  nil {
+            fmt.Fprintln(os.Stderr, err)
+            os.Exit(1)
+        }
+    }()
     for _, arg := range os.Args[1:] {
         if arg == "-v" {
             verbose = true
