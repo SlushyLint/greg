@@ -83,6 +83,9 @@ autocmd BufRead,BufNewFile *.vala set filetype=c
 call plug#begin('~/.vim/plugged')
 Plug 'nordtheme/vim'
 Plug 'dense-analysis/ale'
+Plug 'luochen1990/rainbow'
+Plug 'jiangmiao/auto-pairs'
+
 call plug#end()
 
 " 2. --- Nord Color Scheme Setup ---
@@ -152,6 +155,20 @@ highlight ALEWarning ctermfg=Black ctermbg=Cyan
 
 
 
+,
+
+
+
+
+" 1. Enable the rainbow plugin globally
+let g:rainbow_active = 1
+
+" 2. Force rainbow colors to match the Nord color palette
+"  let g:rainbow_conf = {
+"  \   'guifgs': ['#8FBCBB', '#88C0D0', '#81A1C1', '#5E81AC', '#A3BE8C', '#EBCB8B'],
+"  \   'ctermfgs': ['cyan', 'lightcyan', 'blue', 'darkblue', 'green', 'yellow'],
+"  \   'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
+"  \}
 
 
 
@@ -163,15 +180,22 @@ highlight ALEWarning ctermfg=Black ctermbg=Cyan
 
 
 
+let g:rainbow_conf = {
+\   'guifgs': ['#8FBCBB', '#88C0D0', '#81A1C1', '#5E81AC', '#A3BE8C', '#EBCB8B'],
+\   'ctermfgs': ['cyan', 'lightcyan', 'blue', 'darkblue', 'green', 'yellow'],
+\   'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
+\}
+
+" 5. Clean up auto-pairs conflict by forcing a syntax refresh on file load
+autocmd BufWinEnter,Syntax * RainbowToggleOn
 
 
 
 
 
+set viminfo='10
 
-
-
-
-
-
-
+augroup remember_cursor_position
+    autocmd!
+    autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute "normal! g`\"" | endif
+augroup END
