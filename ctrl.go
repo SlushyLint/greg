@@ -1,0 +1,106 @@
+package main
+
+func (p *Pars) condition() bool {
+    left := p.expr()
+    op := p.current()
+
+    if op.Type != "op" || (op.Value != ">" && op.Value != "<") {
+        panic("expected > or < in condition")
+    }
+    p.adv()  // so we just ignore the error?
+            // or does `panic` end the program???
+
+    right := p.expr()
+    if op.Value == ">"{
+        return left > right
+    }
+    return  left < right    //return  ends the program, so by default, this 
+                            // is essentially "else { return left < right }"
+}
+func (p *Pars) ifstmt() {
+
+    p.adv() // consume if
+    result := p.condition()
+    if p.current().Type != "brace" || p.current().Value != "{" {
+        panic("[!] E: Expected { after 'if'")
+    }
+    p.adv() //consume {
+
+    if result {
+        for p.pos < len(p.tokens) && 
+        !(p.current().Type == "brace" && p.current().Value == "}"){
+            if p.current().Type == "nl" ||      // 
+            p.current().Type == "indent" ||     // this should let the parser ignore indentation artifacts
+            p.current().Type == "dedent" {      //
+                p.adv()
+                continue
+            }
+            p.stmt()
+        }
+        if p.pos >= len(p.tokens) {
+            panic("[!] E: Expected closing }")
+        }
+        p.adv() //consume }
+        return
+    }
+
+    //skip the body
+    depth := 1
+    for p.pos < len(p.tokens) && depth > 0 {
+        token := p.adv()
+        if token.Type == "brace" {
+            if token.Value == "{" {
+                depth++
+            } else if token.Value == "}" {
+                depth --
+            }
+        }
+    }
+    if depth != 0 {
+        panic("[!] expected } to close 'if'")
+    }
+}
+
+
+
+//    p.adv() //advance past 'if'
+//    result := p.condition() //check if we are dealing with a conditional
+//
+//    if p.current().Type != "nl" {   // "nl" is "\n"
+//        panic("[!] E: Expected \\n after 'if'")
+//    }
+//    p.adv() // consume \n
+//    if p.current().Type != "indent" {
+//        panic("[!] E: Expected indent after 'if'")
+//    }
+//    p.adv() //consume indent, i forgor this earlier
+//
+//    if result { // checks if there is or isnt a conditional, utilizing a bool
+//
+//        for p.pos < len(p.tokens) && p.current().Type != "dedent" {
+//            if p.current().Type == "nl" {
+//                p.adv()
+//                continue
+//            }
+//            p.stmt()    // process the statement
+//        }
+//        if p.current().Type != "dedent" {
+//            panic("[!] E: Expected end of indent body")
+//        }
+//        p.adv()
+//        return
+//    }
+//    depth := 1  // how deep the indentation goes
+//    for p.pos<len(p.tokens)&&depth>0{ // valid go loop??
+//        switch p.current().Type {
+//        case "indent":
+//            depth++
+//        case "dedent":
+//            depth--
+//        }
+//
+//        p.adv()
+//    }
+//    if depth != 0 {
+//        panic("[!] E: Expected end of indent body")
+//    }
