@@ -48,12 +48,6 @@ if !isdirectory(expand('~/.vim/undo'))
     call mkdir(expand('~/.vim/undo'), 'p')
 endif
 
-" --- Highlight current line number red ---
-highlight CursorLineNr guifg=red ctermfg=red
-set cursorline
-highlight LineNr guifg=#666666 ctermfg=8
-highlight CursorLineNr guifg=white
-set nocursorline
 " --- Search highlighting ---
 set hlsearch
 set incsearch
@@ -126,6 +120,12 @@ highlight goRawString guifg=#A3BE8C ctermfg=Green
 highlight goComment guifg=#596477 ctermfg=DarkGray
 highlight Delimiter guifg=#C4CDDD ctermfg=LightCyan
 highlight goOperator guifg=#81A1C1 ctermfg=Blue
+
+" Keep inactive line numbers dimmer than comments; mark the active row clearly.
+set cursorline
+highlight LineNr guifg=#3B4252 ctermfg=Black
+highlight CursorLine guibg=#2C313D ctermbg=8
+highlight CursorLineNr guifg=#ABB2BF ctermfg=White
 
 " 3. --- Keep Terminal Background Color Unchanged ---
 " This overrides Nord's default background, forcing it to be transparent/none.
