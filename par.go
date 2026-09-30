@@ -43,15 +43,28 @@ func (p *Pars) adv() Token {
 // num reads a numeric literal or numeric variable as a float64.
 func (p *Pars) num() float64 {
 	token := p.current()
-	if token.Type == "paren" { // recursive math
-		p.adv()           // we have to accept the parenthesis
-		value := p.expr() // main math func
+	//	if token.Type == "paren" { // recursive math
+	//		p.adv()           // we have to accept the parenthesis
+	//		value := p.expr() // main math func
+	//		if p.current().Type != "paren" ||
+	//			p.current().Value != "(" {
+	//			panic("[!] E: Expected )")
+	//		}
+	//		p.adv() //consume closing parenthesis
+	//		return value
+	//	}
+
+	if token.Type == "paren" && token.Value == "(" {
+		p.adv() // we have to grab the "("
+		value := p.expr()
 		if p.current().Type != "paren" ||
-			p.current().Value != "(" {
+			p.current().Value != ")" {
 			panic("[!] E: Expected )")
+
 		}
-		p.adv() //consume closing parenthesis
+		p.adv() //continue
 		return value
+
 	}
 
 	if token.Type == "n" {
