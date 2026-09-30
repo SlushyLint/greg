@@ -286,7 +286,7 @@ func (p *Pars) stmt() {
 	}
 
 	name := p.current().Value
-	if name == "print" {
+	if name == "print" || name == "printf" {
 		p.printstmt()
 		return
 	}
@@ -424,7 +424,7 @@ func (v Value) String() string {
 	return ""
 }
 
-// parses print(format, arguments) and sends vals to fmt.Printf
+// printstmt parses print/printf(format, arguments) and writes the formatted output.
 func (p *Pars) printstmt() {
 	p.adv() // read "print"
 	if p.current().Type != "paren" || p.current().Value != "(" {
@@ -432,36 +432,45 @@ func (p *Pars) printstmt() {
 	}
 	p.adv() //read (
 
-	formtoken := p.adv() // all the shit inside the parenthesis
+	formtoken := p.adv()
 	if formtoken.Type != "s" {
 		panic("[!] FM: Expected a format string")
 	}
 	format := formtoken.Value
-	args := make([]any, 0) // all the arguments afterwards
+	args := make([]any, 0)
 
-	for p.current().Type == "op" &&
-		p.current().Value == "," {
-		p.adv() // grab the comma
+	for p.current().Type == "c" {
+		p.adv()
 		token := p.current()
 
 		switch token.Type {
 		case "s":
 			args = append(args, p.adv().Value)
 		case "l":
+			p.adv()
 			value, ok := vars[token.Value]
-			if !ok { // if not okay, seek therapy.
-				panic("[!] PV: Unknow variable in print")
-				// or just panic
+			if !ok {
+				panic("[!] PV: Unknown variable in print")
 			}
-			if value.Type == "str" {
+			switch value.Type {
+			case "int":
+				args = append(args, value.Int)
+			case "float":
+				args = append(args, value.Float)
+			case "str":
 				args = append(args, value.Str)
+			default:
+				panic("[!] PV: Unsupported variable type in print")
 			}
 		case "n", "paren":
 			args = append(args, p.expr())
 		default:
-			panic("[!] P: Expected ) after print args")
+			panic("[!] P: Expected print argument")
 		}
-		p.adv()
-		fmt.Printf(format, args...)
 	}
+	if p.current().Type != "paren" || p.current().Value != ")" {
+		panic("[!] P: Expected ) after print args")
+	}
+	p.adv()
+	fmt.Printf(format, args...)
 }
