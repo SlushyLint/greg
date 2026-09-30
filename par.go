@@ -83,14 +83,18 @@ func (p *Pars) num() float64 {
 			return value.Float
 		}
 
-		// Non-numeric or unknown identifiers currently evaluate as zero.
+		// non-numbers eval as zero
+		// deal with it
 		return 0
 	}
-	// Other token types, including strings, are not numeric expressions.
-	return 0
+	// other token types,like strings, are not intigers or floats, incase you are stupid
+
+	return 0 // <-- returns zero
 }
 
-// current returns the next token without consuming it, or an empty token at EOF.
+// current() returns the next token, then...
+// uh idk
+// but it does something useful.
 func (p *Pars) current() Token {
 	if p.pos >= len(p.tokens) {
 		return Token{}
@@ -99,7 +103,9 @@ func (p *Pars) current() Token {
 }
 
 // term parses multiplication and division, which bind more tightly than + and -.
-func (p *Pars) term() float64 {
+
+func (p *Pars) term() float64 { // parses * and / more strictly than + and -
+	// safety float64
 	l := p.num()
 
 	for p.pos < len(p.tokens) {
@@ -122,7 +128,7 @@ func (p *Pars) term() float64 {
 }
 
 // expr parses addition and subtraction over terms.
-func (p *Pars) expr() float64 {
+func (p *Pars) expr() float64 { //yes, this shitshow will always return a float
 	l := p.term()
 
 	for p.pos < len(p.tokens) {
@@ -145,9 +151,12 @@ func (p *Pars) expr() float64 {
 	}
 
 	return l
+
 }
 
 func (p *Pars) forstmt() {
+	// c-style looping
+	// example, for (i^i = 0; i < 20; i++) to do something 20 times
 	p.adv() // read "for"
 	if p.current().Type != "paren" || p.current().Value != "(" {
 		panic("[!] L: Expected ( after 'for'")
@@ -197,7 +206,10 @@ func (p *Pars) forstmt() {
 
 	p.pos = bodyend
 }
+
 func (p *Pars) whilestmt() {
+	// ?????????
+	// i made this at 3am and it works??
 	p.adv()
 	condstart := p.pos
 	matches := p.condition()
@@ -218,16 +230,16 @@ func (p *Pars) blockend(start int) int {
 	if start >= len(p.tokens) ||
 		p.tokens[start].Type != "brace" ||
 		p.tokens[start].Value != "{" {
-		panic("[!] E: Expected {")
+		panic("[!] E: Expected {") // you missed the starting brace
 
 	}
-	depth := 0
+	depth := 0 // we should reset the depth for every brace for recursion
 	for index := start; index < len(p.tokens); index++ {
 		token := p.tokens[index]
 		if token.Type != "brace" {
 			continue
 		}
-		if token.Value == "{" {
+		if token.Value == "{" { // ALE, stfu
 			depth++
 		} else if token.Value == "}" {
 			depth--
@@ -237,11 +249,12 @@ func (p *Pars) blockend(start int) int {
 			}
 		}
 	}
-	panic("[!] E: Expected }")
+	panic("[!] E: Expected }") // in other words, "shit"
 }
 
 // stmt parses and executes one declaration, print, assignment, or conditional.
 func (p *Pars) stmt() {
+
 	if p.current().Value == "if" {
 		p.ifstmt()
 		return
@@ -268,6 +281,7 @@ func (p *Pars) stmt() {
 			}
 		}
 		if tname == "f" {
+			// why the hell did i make float the default variable????
 			vars[name] = Value{
 				Type:  "float",
 				Float: (value),
@@ -275,7 +289,8 @@ func (p *Pars) stmt() {
 		}
 
 		if tname == "s" {
-			// Expressions do not consume string tokens, so read this initializer directly.
+			// Expressions do not read string tokens
+			// so read the bullshit directly
 			value := p.str()
 			vars[name] = Value{
 				Type: "str",
@@ -285,42 +300,15 @@ func (p *Pars) stmt() {
 		return
 	}
 
+	// print and  printf should do the same thing
 	name := p.current().Value
 	if name == "print" || name == "printf" {
 		p.printstmt()
 		return
 	}
-	//		// print accepts a literal token or a previously stored variable.
-	//		p.adv()
-	//		if p.current().type != "paren" ||
-	//			p.current().value != "(" {
-	//			panic("[!] e: expected (")
-	//
-	//		}
-	//		p.adv()
-	//		item := p.current() // current position
-	//
-	//		switch {
-	//		case item.type == "s": // string litterals in "" and plain ass numbers
-	//			fmt.println(p.adv().value)
-	//		case item.type == "l":
-	//			printval(item.value) // usually a variable name
-	//			p.adv()
-	//		case item.type == "n" || item.type == "l":
-	//			fmt.println(p.expr())
-	//
-	//		default: // error handling;
-	//			// just printing newline should be fine here too
-	//			panic("[!] e: expected a statement")
-	//		}
-	//		if p.current().type != "paren" ||
-	//			p.current().value != ")" {
-	//			panic("[!] e: expected )")
-	//		}
-	//		p.adv()
-	//		return
-	//	}
 
+	// now this is an actual peice of shit
+	// deadass forgot what this does
 	if p.pos+1 < len(p.tokens) &&
 		p.current().Type == "l" &&
 		p.tokens[p.pos+1].Type == "op" &&
@@ -334,13 +322,13 @@ func (p *Pars) stmt() {
 	if !p.invars() {
 		return
 	}
-	// Skip the assignment target and '=' before evaluating the right-hand side.
-	for i := 0; i < 2; i++ {
+	// Skip the assignment target and '=' before evaluating the side.
+	for i := 0; i < 2; i++ { // shut up ALE
 		p.adv()
 	}
 
 	value := p.expr()
-	// Reassignment currently represents every value as a float.
+	//  represents every god damn value as a float because why tf not
 	vars[name] = Value{
 		Type:  "float",
 		Float: value,
@@ -352,7 +340,7 @@ func (p *Pars) invars() bool {
 		p.current().Type != "l" {
 		return false
 	}
-	name := p.current().Value
+	name := p.current().Value // p global current token value
 	op := p.tokens[p.pos+1].Value
 	if op != "++" && op != "--" {
 		return false
@@ -377,6 +365,8 @@ func (p *Pars) invars() bool {
 
 	default:
 		panic("[!] V: Can only incriment i^ or ^f vars")
+		// i^ variables are int
+		// f^ variables are floats (specifically float64)
 	}
 	vars[name] = value
 	p.adv()
@@ -414,17 +404,18 @@ func printval(name string) {
 func (v Value) String() string {
 	switch v.Type {
 	case "int":
-		return fmt.Sprintf("%d", v.Int)
+		return fmt.Sprintf("%d", v.Int) // why is printf so fucking weird
 	case "float":
-		return fmt.Sprintf("%v", v.Float)
+		return fmt.Sprintf("%v", v.Float) // THIS is sensible
 	case "str":
 		return v.Str
 	}
 
-	return ""
+	return "" // we have to return a string
 }
 
 // printstmt parses print/printf(format, arguments) and writes the formatted output.
+
 func (p *Pars) printstmt() {
 	p.adv() // read "print"
 	if p.current().Type != "paren" || p.current().Value != "(" {
