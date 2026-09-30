@@ -147,6 +147,56 @@ func (p *Pars) expr() float64 {
 	return l
 }
 
+func (p *Pars) forstmt() {
+	p.adv() // read "for"
+	if p.current().Type != "paren" || p.current().Value != "(" {
+		panic("[!] L: Expected ( after 'for'")
+	}
+	p.adv() //read (
+
+	p.stmt() //initializer
+	// e.g., i^i = 0
+	if p.current().Value != ";" {
+		panic("[!] L: Expected ; after initializer")
+	}
+	p.adv() //continue
+
+	constart := p.pos
+	matches := p.condition()
+	if p.current().Value != ";" {
+		panic("[!] L: Expected ; after condition")
+	}
+	p.adv() //continue
+
+	updstart := p.pos
+	closeparen := updstart
+	for closeparen < len(p.tokens) &&
+		!(p.tokens[closeparen].Type == "paren" &&
+			p.tokens[closeparen].Value == ")") {
+		closeparen++
+	}
+
+	if closeparen >= len(p.tokens) {
+		panic("[!] L: Expected ) after update")
+
+	}
+	bodystart := closeparen + 1 // this plus one pissed me off
+	bodyend := p.blockend(bodystart)
+
+	for matches {
+		p.pos = bodystart
+		p.block(true)
+
+		p.pos = updstart
+		p.stmt() // update, example x++
+
+		p.pos = constart
+		matches = p.condition()
+
+	}
+
+	p.pos = bodyend
+}
 func (p *Pars) whilestmt() {
 	p.adv()
 	condstart := p.pos
@@ -197,7 +247,7 @@ func (p *Pars) stmt() {
 		return
 	}
 	if p.current().Value == "for" {
-		p.whilestmt()
+		p.forstmt()
 		return
 	}
 	tname := p.current().Value
@@ -252,6 +302,7 @@ func (p *Pars) stmt() {
 			fmt.Println(p.adv().Value)
 		case item.Type == "l":
 			printval(item.Value) // usually a variable name
+			p.adv()
 		case item.Type == "n" || item.Type == "l":
 			fmt.Println(p.expr())
 
@@ -266,6 +317,20 @@ func (p *Pars) stmt() {
 		p.adv()
 		return
 	}
+
+	if p.pos+1 < len(p.tokens) &&
+		p.current().Type == "l" &&
+		p.tokens[p.pos+1].Type == "op" &&
+		(p.tokens[p.pos+1].Value == "++" ||
+			p.tokens[p.pos+1].Value == "--") {
+		if p.invars() {
+			return
+		}
+	}
+
+	if !p.invars() {
+		return
+	}
 	// Skip the assignment target and '=' before evaluating the right-hand side.
 	for i := 0; i < 2; i++ {
 		p.adv()
@@ -277,6 +342,43 @@ func (p *Pars) stmt() {
 		Type:  "float",
 		Float: value,
 	}
+}
+
+func (p *Pars) invars() bool {
+	if p.pos+1 >= len(p.tokens) ||
+		p.current().Type != "l" {
+		return false
+	}
+	name := p.current().Value
+	op := p.tokens[p.pos+1].Value
+	if op != "++" && op != "--" {
+		return false
+	}
+	value, ok := vars[name]
+	if !ok {
+		panic("[!] V: Unknown variable")
+	}
+	delta := 1
+	if op == "--" {
+		delta = -1
+
+	}
+
+	switch value.Type {
+
+	case "int":
+		value.Int += delta
+
+	case "float":
+		value.Float += float64(delta)
+
+	default:
+		panic("[!] V: Can only incriment i^ or ^f vars")
+	}
+	vars[name] = value
+	p.adv()
+	p.adv()
+	return true
 }
 
 // str reads and consumes the current string token, or returns an empty string.

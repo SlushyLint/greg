@@ -138,14 +138,25 @@ func lex(src string) []Token {
 		// Recognize single-character operators, the declaration marker, and braces.
 		switch src[i] {
 		case '+':
+			value := "+"
+			if i+1 < len(src) && src[i+1] == '+' { // "++" for incrimenting variables
+				value = "++" // useful, as we're gonna use a basic c 'for' loop
+				i++
+
+			}
 			tokens = append(tokens, Token{
 				Type:  "op",
-				Value: "+",
+				Value: value,
 			})
 		case '-':
+			value := "-"
+			if i+1 < len(src) && src[i+1] == '-' {
+				value = "--"
+				i++
+			}
 			tokens = append(tokens, Token{
 				Type:  "op",
-				Value: "-",
+				Value: value,
 			})
 		case '*':
 			tokens = append(tokens, Token{
