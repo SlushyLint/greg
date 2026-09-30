@@ -1,58 +1,105 @@
 # Greg
 
-Greg is a small interpreter written in Go and is under active, rapid
-development. Its syntax and behavior may change without notice; the features
-below describe the current implementation, not a stable language
-specification.
+Greg is a tiny Go-based interpreter for a very small, experimental language.
+This project is still evolving, so the syntax below reflects the currently
+working implementation rather than a formal language specification.
 
 ## Requirements
 
 - Go 1.27.1 or later
 
-## Run
+## Running
 
-Pass a Greg source file to the interpreter:
-
-```sh
-go run . path/to/program.greg
-```
-
-Use `-v` to print the source, tokens, and variable values before execution:
+You can execute a source file directly:
 
 ```sh
-go run . -v path/to/program.greg
+go run . path/to/program.hs
 ```
 
-You can also build an executable with `go build -o greg .` and run it as
-`./greg path/to/program.greg`.
+Use `-v` to print the source, tokens, and current variable values before the
+program runs:
 
-## Language basics
+```sh
+go run . -v path/to/program.hs
+```
 
-Declare variables with a type marker (`i` for integer, `f` for float, and `s`
-for string), followed by `^`:
+You can also build a standalone binary:
+
+```sh
+go build -o greg .
+./greg path/to/program.hs
+```
+
+## Current language features
+
+The parser currently supports:
+
+- typed declarations: `i^`, `f^`, and `s^`
+- numeric expressions with `+`, `-`, `*`, and `/`
+- comparisons with `>` and `<`
+- `++` and `--` increment/decrement operators
+- `if` / `else` blocks with braces
+- `for (init; condition; update) { ... }` loops
+- `printf("format", args...)` output
+
+## Examples
+
+Declare and print variables:
 
 ```text
 i^count = 2
 f^ratio = 3.5
 s^message = "hello"
+
+printf("%v %v %v\n", count, ratio, message)
 ```
 
-Numeric variables can be reassigned and used in expressions with `+`, `-`,
-`*`, and `/`. Print a literal or variable with `print`:
+This prints:
 
 ```text
-count = count + 1
-print count
-print "done"
+2 3.5 hello
 ```
 
-Conditional blocks use braces and support `<` and `>` comparisons, as well as
-`elif` and `else`:
+Conditional logic:
 
 ```text
-if count > 2 {
-    print "large"
+i^count = 2
+
+if count > 1 {
+    printf("large\n")
 } else {
-    print "small"
+    printf("small\n")
 }
 ```
+
+This prints:
+
+```text
+large
+```
+
+For loops:
+
+```text
+for (i^i = 0; i < 10; i++) {
+    printf("%v ", i)
+}
+```
+
+This prints:
+
+```text
+0 1 2 3 4 5 6 7 8 9 
+```
+
+## Important caveat
+
+This interpreter is intentionally minimal and not fully general-purpose. In the
+current implementation, simple reassignment such as `count = count + 1` is not
+handled by the parser; use declaration syntax plus `++` / `--` for updates.
+
+The example programs in the repository are under `test/` and are the best
+reference for the current syntax and behavior.
+
+
+*(notice, this README was written with AI, as I'm a lazy motherfucker with a life)*
