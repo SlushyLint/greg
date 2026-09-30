@@ -234,16 +234,18 @@ func (p *Pars) stmt() {
 		p.adv()
 		item := p.current() // current position
 
-		switch item.Type {
-		case "s", "n": // string litterals in "" and plain ass numbers
-			fmt.Println(item.Value)
-		case "l":
+		switch {
+		case item.Type == "s": // string litterals in "" and plain ass numbers
+			fmt.Println(p.adv().Value)
+		case item.Type == "l":
 			printval(item.Value) // usually a variable name
+		case item.Type == "n" || item.Type == "l":
+			fmt.Println(p.expr())
+
 		default: // error handling;
 			// just printing newline should be fine here too
 			panic("[!] E: expected a statement")
 		}
-		p.adv()
 		if p.current().Type != "paren" ||
 			p.current().Value != ")" {
 			panic("[!] E: Expected )")
