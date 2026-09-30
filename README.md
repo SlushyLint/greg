@@ -102,4 +102,4 @@ The example programs in the repository are under `test/` and are the best
 reference for the current syntax and behavior.
 
 
-*(notice, this README was written with AI, as I'm a lazy motherfucker with a life)*
+*Note: this README was drafted with AI because I have a life.*
