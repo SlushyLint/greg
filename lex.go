@@ -208,6 +208,11 @@ func lex(src string) []Token {
 				Type:  "paren",
 				Value: string(src[i]),
 			})
+		case ',':
+			tokens = append(tokens, Token{
+				Type:  "c",
+				Value: string(src[i]),
+			})
 
 		}
 	}

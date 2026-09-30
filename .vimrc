@@ -34,7 +34,15 @@ inoremap jj <Esc>
 
 " --- ; = : in Normal mode ---
 nnoremap ; :
+"random shit rebinds
+let mapleader = " "
 
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader>x :x<CR>
+nnoremap <leader>v <C-V>
+nnoremap <leader>a ma
+nnoremap <leader><leader> 'a
 " --- Persistent undo ---
 set undofile
 set undodir=~/.vim/undo
@@ -69,8 +77,8 @@ highlight CursorLineNr ctermfg=Yellow gui=bold
 
 
 " Error line highlighting
-nnoremap <C-L> :nohlsearch<CR>
-
+" nnoremap  <C-L> : silent! cclose<Bar> :silent! lclose<Bar> :silent! nohlsearch<CR>
+nnoremap <silent> <C-L> :silent! cclose<Bar>silent! lclose<Bar>silent! nohlsearch<CR>
 " For the currently selected/active search term
 hi CurSearch ctermbg=Green ctermfg=Black guibg=Green guifg=Black
 set timeout
@@ -88,14 +96,18 @@ Plug 'nordtheme/vim'
 Plug 'dense-analysis/ale'
 Plug 'luochen1990/rainbow'
 Plug 'jiangmiao/auto-pairs'
-Plug 'prabirshrestha/vim-lsp'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 call plug#end()
 
-au User lsp_setup call lsp#register_server({
-\   'name': 'gopls',
-\   'cmd': ['gopls'],
-\   'allowlist': ['go'],
-\})
+" Keep vim-go's syntax, but let ALE own Go diagnostics and formatting.
+let g:go_gopls_enabled = 0
+let g:go_code_completion_enabled = 0
+let g:go_def_mode = 'gopls'
+let g:go_info_mode = 'gopls'
+let g:go_diagnostics_level = 0
+let g:go_highlight_diagnostic_errors = 0
+let g:go_fmt_autosave = 0
+let g:go_fmt_command = 'goimports'
 " 2. --- Nord Color Scheme Setup ---
 syntax enable
 colorscheme nord
@@ -155,10 +167,11 @@ let g:ale_fix_on_save = 1
 let g:ale_lint_on_text_changed = 'always'
 let g:ale_lint_on_insert_leave = 1
 let g:ale_lint_on_enter = 1
-let g:ale_lint_delay = 150
+let g:ale_lint_delay = 200
 
 " Highlight ONLY the offending source text
 let g:ale_set_highlights = 1
+let g:ale_virtualtext_cursor = 2
 
 highlight ALEError guifg=#000000 guibg=#88C0D0
 highlight ALEWarning guifg=#000000 guibg=#88C0D0
@@ -200,9 +213,9 @@ augroup remember_cursor_position
     autocmd!
     autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute "normal! g`\"" | endif
 augroup END
-highlight LspSemanticVariable guifg=#6F94B8 ctermfg=Blue
-highlight LspSemanticProperty guifg=#6F94B8 ctermfg=Blue
-highlight LspSemanticParameter guifg=#6F94B8 ctermfg=Blue
+highlight LspSemanticVariable guifg=#6F94B8 ctermfg=Cyan
+highlight LspSemanticProperty guifg=#6F94B8 ctermfg=Cyan
+highlight LspSemanticParameter guifg=#6F94B8 ctermfg=Cyan
 highlight LspSemanticFunction guifg=#88C0D0 ctermfg=Cyan
 highlight LspSemanticMethod guifg=#88C0D0 ctermfg=Cyan
 highlight LspSemanticType guifg=#8FBCBB ctermfg=LightCyan
@@ -210,3 +223,18 @@ highlight LspSemanticString guifg=#A3BE8C ctermfg=Green
 highlight LspSemanticNumber guifg=#B48EAD ctermfg=Magenta
 let g:lsp_document_highlight_enabled = 1
 let g:lsp_document_highlight_delay = 0
+" Completion menu
+" Completion documentation popup
+set completepopup=align:item,border:off,highlight:NormalFloat
+
+" Popup appearance
+highlight NormalFloat guibg=#2E3440 guifg=#D8DEE9
+highlight Pmenu      guibg=#2E3440 guifg=#D8DEE9
+highlight PmenuSel   guibg=#5E81AC guifg=#ECEFF4 gui=bold
+
+" Slight transparency
+set pumheight=12
+highlight PmenuSbar guibg=#3B4252
+highlight PmenuThumb guibg=#88C0D0
+let g:lsp_completion_documentation_enabled = 0
+" run go install golang.org/x/tools/cmd/goimports@latestt

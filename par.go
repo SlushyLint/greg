@@ -287,36 +287,39 @@ func (p *Pars) stmt() {
 
 	name := p.current().Value
 	if name == "print" {
-		// Print accepts a literal token or a previously stored variable.
-		p.adv()
-		if p.current().Type != "paren" ||
-			p.current().Value != "(" {
-			panic("[!] E: Expected (")
-
-		}
-		p.adv()
-		item := p.current() // current position
-
-		switch {
-		case item.Type == "s": // string litterals in "" and plain ass numbers
-			fmt.Println(p.adv().Value)
-		case item.Type == "l":
-			printval(item.Value) // usually a variable name
-			p.adv()
-		case item.Type == "n" || item.Type == "l":
-			fmt.Println(p.expr())
-
-		default: // error handling;
-			// just printing newline should be fine here too
-			panic("[!] E: expected a statement")
-		}
-		if p.current().Type != "paren" ||
-			p.current().Value != ")" {
-			panic("[!] E: Expected )")
-		}
-		p.adv()
+		p.printstmt()
 		return
 	}
+	//		// print accepts a literal token or a previously stored variable.
+	//		p.adv()
+	//		if p.current().type != "paren" ||
+	//			p.current().value != "(" {
+	//			panic("[!] e: expected (")
+	//
+	//		}
+	//		p.adv()
+	//		item := p.current() // current position
+	//
+	//		switch {
+	//		case item.type == "s": // string litterals in "" and plain ass numbers
+	//			fmt.println(p.adv().value)
+	//		case item.type == "l":
+	//			printval(item.value) // usually a variable name
+	//			p.adv()
+	//		case item.type == "n" || item.type == "l":
+	//			fmt.println(p.expr())
+	//
+	//		default: // error handling;
+	//			// just printing newline should be fine here too
+	//			panic("[!] e: expected a statement")
+	//		}
+	//		if p.current().type != "paren" ||
+	//			p.current().value != ")" {
+	//			panic("[!] e: expected )")
+	//		}
+	//		p.adv()
+	//		return
+	//	}
 
 	if p.pos+1 < len(p.tokens) &&
 		p.current().Type == "l" &&
@@ -419,4 +422,46 @@ func (v Value) String() string {
 	}
 
 	return ""
+}
+
+// parses print(format, arguments) and sends vals to fmt.Printf
+func (p *Pars) printstmt() {
+	p.adv() // read "print"
+	if p.current().Type != "paren" || p.current().Value != "(" {
+		panic("[!] P: Expected ( after print")
+	}
+	p.adv() //read (
+
+	formtoken := p.adv() // all the shit inside the parenthesis
+	if formtoken.Type != "s" {
+		panic("[!] FM: Expected a format string")
+	}
+	format := formtoken.Value
+	args := make([]any, 0) // all the arguments afterwards
+
+	for p.current().Type == "op" &&
+		p.current().Value == "," {
+		p.adv() // grab the comma
+		token := p.current()
+
+		switch token.Type {
+		case "s":
+			args = append(args, p.adv().Value)
+		case "l":
+			value, ok := vars[token.Value]
+			if !ok { // if not okay, seek therapy.
+				panic("[!] PV: Unknow variable in print")
+				// or just panic
+			}
+			if value.Type == "str" {
+				args = append(args, value.Str)
+			}
+		case "n", "paren":
+			args = append(args, p.expr())
+		default:
+			panic("[!] P: Expected ) after print args")
+		}
+		p.adv()
+		fmt.Printf(format, args...)
+	}
 }
